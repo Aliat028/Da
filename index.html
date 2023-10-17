@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OCR using Javascript and appscript</title>
+    <style>
+        .ocr {
+            width: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+        }
+
+        .ocr * {
+            margin-top: 5px;
+        }
+
+        .text {
+            width: 80%;
+            height: 150px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="ocr">
+        <h1>Image And PDF OCR Tool</h1>
+        <h2 class="message"></h2>
+        <span>Select a File</span>
+        <input type="file" class="file">
+        <button class="btn">Perform OCR</button>
+        <span>Result Text</span>
+        <textarea class="text"></textarea>
+        <button onclick="getlocation()">Get Location</button>
+        <div id="map"></div>
+        <div id="details"></div>
+    </div>
+    <script>
+        let api = "https://script.google.com/macros/s/AKfycbwPxOgTO5MjiM0gcYHUb-qeEc967qNwqzRGK86IODPE4IYV9YU0OqgCGTF7wYw9cn5kxQ/exec";
+        let msg = document.querySelector(".message");
+        let file = document.querySelector(".file");
+        let btn = document.querySelector(".btn");
+        let text = document.querySelector(".text");
+        btn.addEventListener('click', () => {
+            msg.innerHTML = `Loading..`;
+            let fr = new FileReader();
+            fr.readAsDataURL(file.files[0])
+            fr.onload = () => {
+                let res = fr.result;
+                let b64 = res.split("base64,")[1];
+                fetch(api, {
+                    method: "POST",
+                    body: JSON.stringify({
+                        file: b64,
+                        type: file.files[0].type,
+                        name: file.files[0].name
+                    })
+                })
+                    .then(res => res.text())
+                    .then(data => {
+                        text.innerHTML = data;
+                        msg.innerHTML = ``;
+                    });
+            }
+        })
+
+        const getlocation = () => {
+            var reqcount = 0;
+            // if (navigator.geolocation) {
+            //     navigator.geolocation.getCurrentPosition((position) => {
+            //         console.log(position);
+            //         const { latitude, longitude } = position.coords;
+            //         // Show a map centered at latitude / longitude using IP address .
+            //         map.innerHTML = '<iframe width= "700" height="300" src="https://maps.google.com/maps?q='+latitude+','+longitude+'&amp;z=15&amp;output=embed"></iframe>';
+            //     });
+            // }
+
+            const watchId = navigator.geolocation.watchPosition(successCallback, errorCallback, options);
+            function successCallback(position) {
+                const { accuracy, latitude, longitude, altitude, heading, speed } = position.coords;
+                // Show a map centered at latitude / longitude.
+                reqcount++;
+                details.innerHTML = "Accuracy: " + accuracy + "<br>";
+                details.innerHTML += "Latitude: " + latitude + " | Longitude: " + longitude + "<br>";
+                details.innerHTML += "Altitude: " + altitude + "<br>";
+                details.innerHTML += "Heading: " + heading + "<br>";
+                details.innerHTML += "Speed: " + speed + "<br>";
+                details.innerHTML += "reqcount: " + reqcount;
+
+                // Show a map centered at latitude / longitude using IP address .
+                map.innerHTML = '<iframe allow="geolocation" width= "700" height="300" src="https://maps.google.com/maps?q=' + latitude + ',' + longitude + '&amp;z=15&amp;output=embed"></iframe>';
+
+            }
+
+
+            function errorCallback(error) {
+
+            }
+            var options = {
+                enableHighAccuracy: false,
+                timeout: 5000,
+                maximumAge: 0
+            }
+            // console.log("watchId - "+watchId);
+        };
+
+
+        // const getlocation = () => {
+        //  fetch('https://ipapi.co/json/')
+        //     .then(function (response) {
+        //         response.json().then(jsonData => {
+        //             console.log(jsonData);
+        //         });
+        //     })
+        //     .catch(function (error) {
+        //         console.log(error)
+        //     });
+        // };
+
+        // const getlocation = () => {
+        //     navigator.geolocation.getCurrentPosition(position => {
+        //         const { latitude, longitude } = position.coords;
+
+        //         const url = 'https://nominatim.openstreetmap.org/reverse?format=json&lat=$(latitude)&lon=$(longitude)';
+        //         fetch(url).then(res => res.json()).then(data => {
+        //             console.table(data.address);
+        //         }).catch(() => {
+        //             console.log("Error fetching data from API");
+        //         });
+        //     });
+        // };
+
+    </script>
+</body>
+
+</html>
